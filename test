@@ -94,3 +94,48 @@ func main() {
 	defer tx.Rollback()
 }
 
+// LoadBlockchainFromDatabase нь мэдээллийн сангаас блокчейн өгөгдлийг ачаалдаг.
+func LoadBlockchainFromDatabase() (*Blockchain, error) {
+	// Өгөгдлийн сангийн холболтыг бий болгох.
+	db, err := sql.Open("mysql", "root:8853d4E!@tcp(localhost:3306)/blockchain")
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	// Өгөгдлийн сангаас блокчейн өгөгдөл авах хүсэлт.
+	query := "SELECT block_id, previous_hash, data, timestamp FROM blocks ORDER BY block_id ASC"
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	blockchain := &Blockchain{db: db}
+
+	// Блокийн тохиолдлуудыг үүсгэхийн тулд мөрүүдийг давтаж, блокчэйнд нэмнэ үү.
+	for rows.Next() {
+		var blockID, timestamp int64
+		var previousHash, data string
+
+		err := rows.Scan(&blockID, &previousHash, &data, &timestamp)
+		if err != nil {
+			return nil, err
+		}
+
+		// Шинэ Блокийн жишээ үүсгээд блокчэйнд нэмнэ үү.
+		block := &Block{
+			ID:           blockID,
+			PreviousHash: previousHash,
+			Data:         data,
+			Timestamp:    timestamp,
+		}
+		blockchain.Blocks = append(blockchain.Blocks, block)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return blockchain, nil
+}
