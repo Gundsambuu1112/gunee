@@ -139,3 +139,28 @@ func LoadBlockchainFromDatabase() (*Blockchain, error) {
 
 	return blockchain, nil
 }
+
+	// Өгөгдлийн сангийн холболтыг нээнэ үү.
+	db, err := sql.Open("mysql", "root:8853d4E!@tcp(localhost:3306)/blockchain")
+	if err != nil {
+		fmt.Println("Өгөгдлийн санд холбогдож чадсангүй:", err)
+		return
+	}
+	defer db.Close()
+
+	fmt.Println("MySQL мэдээллийн санд холбогдсон")
+
+	blockchain, err := LoadBlockchainFromDatabase()
+	if err != nil {
+		fmt.Println("Блокчейн ачаалж чадсангүй:", err)
+		return
+	}
+
+	// Блокчейн дэх блок бүрийн өгөгдлийг хэвлэ.
+	for _, block := range blockchain.Blocks {
+		fmt.Printf("Block ID: %d\n", block.ID)
+		fmt.Printf("Data: %s\n", block.Data)
+		fmt.Printf("Previous Hash: %s\n", block.PreviousHash)
+		fmt.Printf("Timestamp: %d\n", block.Timestamp)
+		fmt.Println("----------")
+	}
